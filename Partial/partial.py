@@ -5,7 +5,7 @@ from pgmpy.factors.discrete import TabularCPD
 from pgmpy.inference import VariableElimination
 import networkx as nx
 import matplotlib.pyplot as plt
-from pgmpy.models import BayesianModel
+from pgmpy.models import BayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
 
 
@@ -64,13 +64,14 @@ print("Jucatorul 0 are sanse de ", sanse_jucator0 / 10000 * 100, "%")
 print("Jucatorul 1 are sanse de ", sanse_jucator1 / 10000 * 100, "%")
 
 # ex2
-model = BayesianModel([('StartingPlayer', 'n'), ('n', 'm')])
+model = BayesianNetwork([('StartingPlayer', 'n'), ('n', 'm'), ('StartingPlayer', 'm')])
 
 cpd_starting_player = TabularCPD('StartingPlayer', 2, [[0.5], [0.5]])
 
 cpd_n = TabularCPD('n', 2, [[2/3, 0.5], [1/3, 0.5]], evidence=['StartingPlayer'], evidence_card=[2])
 
-cpd_m = TabularCPD('m', 2, [[2/3, 0.5], [1/3, 0.5]], evidence=['n'], evidence_card=[2])
+# 'm' with dependencies on 'n' and 'StartingPlayer'
+cpd_m = TabularCPD('m', 2, [[2/3, 1/3, 0.5, 0.5], [1/3, 2/3, 0.5, 0.5]], evidence=['n', 'StartingPlayer'], evidence_card=[2, 2])
 
 model.add_cpds(cpd_starting_player, cpd_n, cpd_m)
 
@@ -83,7 +84,9 @@ plt.show()
 # ex3
 infer = VariableElimination(model)
 
+# probabilitate jucator0 in functie de m
 prob_jucator0_stiind_m = infer.query(variables=['StartingPlayer'], evidence={'m': 1})
 print(prob_jucator0_stiind_m)
+
 
 
